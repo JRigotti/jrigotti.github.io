@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>Two forms of state to props :: Whatever</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Recently I was reviewing the code of an application written in React and redux. One particularly &amp;#34;simplified&amp;#34; form of implementation of mapStateToProps caught my attention. At first it looked clever, but then it made question the consequences of such approach.
+ When working with class components in React, one&amp;#39;s way to map values from the redux state to properties in the component, is through the function mapStateToProps in combination with redux&amp;#39; connect." />
+<meta name="keywords" content="" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://jrigotti.github.io/posts/two-forms-of-state-to-props/" />
+
+
+
+
+<link rel="stylesheet" href="https://jrigotti.github.io/assets/style.css">
+
+  <link rel="stylesheet" href="https://jrigotti.github.io/assets/pink.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://jrigotti.github.io/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://jrigotti.github.io/img/favicon/pink.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Two forms of state to props">
+<meta property="og:description" content="Hidden pitfall of an implicit property when mapping redux state to component properties." />
+<meta property="og:url" content="https://jrigotti.github.io/posts/two-forms-of-state-to-props/" />
+<meta property="og:site_name" content="Whatever" />
+
+  
+    <meta property="og:image" content="https://jrigotti.github.io/img/favicon/pink.png">
+  
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2020-10-28 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="pink">
+
+
+<div class="container headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    Rigotti
+  </div>
+</a>
+
+    </div>
+    <div class="menu-trigger">menu</div>
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://jrigotti.github.io/posts/two-forms-of-state-to-props/">Two forms of state to props</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2020-10-28 
+      </span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://jrigotti.github.io/tags/react/">react</a>&nbsp;
+    
+    #<a href="https://jrigotti.github.io/tags/redux/">redux</a>&nbsp;
+    
+  </span>
+  
+
+  
+
+  
+
+  <div class="post-content"><div>
+        <p>
+Recently I was reviewing the code of an application written in React and redux.
+One particularly &#34;simplified&#34; form of implementation of <a href="https://react-redux.js.org/using-react-redux/connect-mapstate">mapStateToProps</a> caught
+my attention. At first it looked clever, but then it made question the
+consequences of such approach.</p>
+<p>
+When working with class components in React, one&#39;s way to map values from the
+redux state to properties in the component, is through the function
+<code class="verbatim">mapStateToProps</code> in combination with redux&#39; <code class="verbatim">connect</code>.</p>
+<div class="src src-jsx">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-jsx" data-lang="jsx"><span style="color:#66d9ef">import</span> <span style="color:#a6e22e">React</span> <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;react&#34;</span>;
+<span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">connect</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#34;react-redux&#34;</span>;
+
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">mapStateToProps</span> <span style="color:#f92672">=</span> (<span style="color:#a6e22e">state</span>) =&gt; ({
+    <span style="color:#a6e22e">a</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">foo</span>.<span style="color:#a6e22e">a</span>,
+    <span style="color:#a6e22e">b</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">foo</span>.<span style="color:#a6e22e">b</span>
+});
+
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyComponent</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">React</span>.<span style="color:#a6e22e">Component</span> {
+    <span style="color:#a6e22e">render</span>() {
+        <span style="color:#66d9ef">return</span> (
+            &lt;&gt;
+                &lt;<span style="color:#f92672">h1</span>&gt;<span style="color:#a6e22e">A</span><span style="color:#f92672">:</span> {<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">props</span>.<span style="color:#a6e22e">a</span>}&lt;/<span style="color:#f92672">h1</span>&gt;
+                &lt;<span style="color:#f92672">h1</span>&gt;<span style="color:#a6e22e">B</span><span style="color:#f92672">:</span> {<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">props</span>.<span style="color:#a6e22e">b</span>}&lt;/<span style="color:#f92672">h1</span>&gt;
+            &lt;/&gt;
+        );
+    }
+}
+
+<span style="color:#66d9ef">export</span> <span style="color:#66d9ef">default</span> <span style="color:#a6e22e">connect</span>(<span style="color:#a6e22e">mapStateToProps</span>)(<span style="color:#a6e22e">MyComponent</span>);</code></pre></div>
+</div>
+<p>
+Here <code class="verbatim">connect</code> acts as a supplier by delivering values from <code class="verbatim">state.foo</code> to
+<code class="verbatim">this.props</code> for use inside <code class="verbatim">MyComponent</code>. Now, suppose <code class="verbatim">foo</code> contains <em>only</em>
+those two properties <code class="verbatim">a</code> and <code class="verbatim">b</code>. We could simplify the implementation of our
+function to:</p>
+<div class="src src-javascript">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">mapStateToProps</span> <span style="color:#f92672">=</span> (<span style="color:#a6e22e">state</span>) =&gt; <span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">foo</span>;
+</code></pre></div>
+</div>
+<p>
+By applying the method above, you&#39;ll reach the &#34;simplified&#34; version I described
+at the start of the article. This snippet of code will indeed simplify the code.
+For instance, image <code class="verbatim">foo</code> gets a new property called <code class="verbatim">c</code>, we can use
+<code class="verbatim">this.props.c</code> within our component without adding an extra line to
+<code class="verbatim">mapStateToProps</code>. This comes, however, with a pitfall. To understand it, let&#39;s
+take a step back and see what happens when we call <code class="verbatim">connect</code>.</p>
+<p>
+A higher-order component (HOC) in React, is a function which takes a component
+as argument, applies some logic, and returns a new one. Often the returned
+component will be the one sent wrapped in another. <code class="verbatim">Connect</code> is a HOC, and what
+it returns is more or less the following:</p>
+<div class="src src-jsx">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-jsx" data-lang="jsx">&lt;<span style="color:#f92672">Connect</span>&gt;
+  &lt;<span style="color:#f92672">MyComponent</span>
+    <span style="color:#a6e22e">a</span><span style="color:#f92672">=</span>{<span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">foo</span>.<span style="color:#a6e22e">a</span>}
+    <span style="color:#a6e22e">b</span><span style="color:#f92672">=</span>{<span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">foo</span>.<span style="color:#a6e22e">b</span>}
+  /&gt;
+&lt;/<span style="color:#f92672">Connect</span>&gt;</code></pre></div>
+</div>
+<p>
+That&#39;s why <code class="verbatim">MyComponent</code> has access to those values as its own properties. But what
+about that extra <code class="verbatim">c</code> property? <code class="verbatim">MyComponent</code> is not making use of it, but that&#39;s how
+it will look once we add it <code class="verbatim">foo</code>:</p>
+<div class="src src-jsx">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-jsx" data-lang="jsx">&lt;<span style="color:#f92672">Connect</span>&gt;
+  &lt;<span style="color:#f92672">MyComponent</span>
+    <span style="color:#a6e22e">a</span><span style="color:#f92672">=</span>{<span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">foo</span>.<span style="color:#a6e22e">a</span>}
+    <span style="color:#a6e22e">b</span><span style="color:#f92672">=</span>{<span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">foo</span>.<span style="color:#a6e22e">b</span>}
+    <span style="color:#a6e22e">c</span><span style="color:#f92672">=</span>{<span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">foo</span>.<span style="color:#a6e22e">c</span>}
+  /&gt;
+&lt;/<span style="color:#f92672">Connect</span>&gt;</code></pre></div>
+</div>
+<p>
+In this situation we have a problem. React components rerender themselves based
+on changes of their properties and state; that means, even though we are not
+using <code class="verbatim">c</code> inside our component, it will nonetheless cause our component to
+redraw.</p>
+<p>
+To illustrate this behavior, the next two gifs will show the difference between
+both implementations of <code class="verbatim">mapStateToProps</code>. On the page we display the values of
+<code class="verbatim">a</code> and <code class="verbatim">b</code> from <code class="verbatim">state.foo</code>, intentionally omitting <code class="verbatim">c</code>. Furthermore three
+buttons that each, on click, raise one of the properties of <code class="verbatim">foo</code> by one.
+Another counter displays the number of times <code class="verbatim">render</code> runs. At last, with
+<a href="https://github.com/LogRocket/redux-logger">redux-logger</a> we log the state changes in the console at the right side.</p>
+<div class="src src-javascript">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#75715e">// version 1
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">mapStateToProps</span> <span style="color:#f92672">=</span> (<span style="color:#a6e22e">state</span>) =&gt; ({
+    <span style="color:#a6e22e">a</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">foo</span>.<span style="color:#a6e22e">a</span>,
+    <span style="color:#a6e22e">b</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">foo</span>.<span style="color:#a6e22e">b</span>
+});
+</code></pre></div>
+</div>
+<p>
+<img src="/images/version1.gif" alt="/images/version1.gif" title="/images/version1.gif" /></p>
+<p>
+Here you can see that each time bumper A or B is pressed, the render counter
+raises. Except for bumper C, even though <code class="verbatim">state.foo.c</code> raises its value, that
+has no effect on the component.</p>
+<div class="src src-javascript">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#75715e">// version 2
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">mapStateToProps</span> <span style="color:#f92672">=</span> (<span style="color:#a6e22e">state</span>) =&gt; <span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">foo</span>;
+</code></pre></div>
+</div>
+<p>
+<img src="/images/version2.gif" alt="/images/version2.gif" title="/images/version2.gif" /></p>
+<p>
+Now the problem reveals! As you can see here the component rerenders when the
+unused property <code class="verbatim">c</code> changes. That can be a source of inefficiency in a web
+application, and unnecessary redrawings shouldn&#39;t occur.</p>
+
+      </div></div>
+
+  
+  
+  
+
+  
+
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2020 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+        <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+<script src="https://jrigotti.github.io/assets/main.js"></script>
+<script src="https://jrigotti.github.io/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>
